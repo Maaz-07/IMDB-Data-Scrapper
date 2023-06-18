@@ -2,41 +2,48 @@ import requests
 from bs4 import BeautifulSoup
 import xlwt
 
-# Function to scrape the movie names
-def scrape_movie_names():
+# Function to scrape the movie data
+def scrape_movies():
     url = "https://www.imdb.com/chart/top"
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
-    movie_names = []
+    movies = []
     
-    # Find the movie names within the table
+    # Find the movie data within the table
     table = soup.find("table", {"class": "chart full-width"})
     rows = table.find_all("tr")
     
-    # Iterate through each row and extract the movie name
+    # Iterate through each row and extract the relevant information
     for row in rows[1:]:  # Skip the header row
-        name = row.find("td", {"class": "titleColumn"}).find("a").text
-        movie_names.append(name)
+        cells = row.find_all("td")
+        name = cells[1].find("a").text
+        genre = cells[1].find("span", {"class": "secondaryInfo"}).text.strip("() ")
+        year = cells[1].find("span", {"class": "secondaryInfo"}).next_sibling.strip("() ")
+        rating = cells[2].find("strong").text
+        movies.append((name, genre, year, rating))
     
-    return movie_names
+    return movies
 
-# Function to save movie names to an Excel file
-def save_to_excel(movie_names):
+# Function to save movie data to an Excel file
+def save_to_excel(movies):
     workbook = xlwt.Workbook()
-    sheet = workbook.add_sheet("Top Movie Names")
+    sheet = workbook.add_sheet("Top Movies")
     
-    # Write column header
-    sheet.write(0, 0, "Movie Name")
+    # Write column headers
+    headers = ["Name", "Genre", "Year", "Rating"]
+    for col, header in enumerate(headers):
+        sheet.write(0, col, header)
     
-    # Write movie names
-    for row, name in enumerate(movie_names, start=1):
-        sheet.write(row, 0, name)
+    # Write movie data
+    for row, movie in enumerate(movies, start=1):
+        for col, value in enumerate(movie):
+            sheet.write(row, col, value)
     
     # Save the Excel file
-    workbook.save("top_movie_names.xls")
+    workbook.save("top_movies.xls")
 
-# Scrape the movie names and save them to Excel
-movie_names_data = scrape_movie_names()
-save_to_excel(movie_names_data)
+# Scrape the movies and save the data to Excel
+movies_data = scrape_movies()
+save_to_excel(movies_data)
 
-print("Movie names have been successfully scraped and saved to 'top_movie_names.xls' file.")
+print("Movie data has been successfully scraped and saved to 'top_movies.xls' file.")
