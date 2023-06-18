@@ -17,10 +17,9 @@ def scrape_movies():
     for row in rows[1:]:  # Skip the header row
         cells = row.find_all("td")
         name = cells[1].find("a").text
-        genre = cells[1].find("span", {"class": "secondaryInfo"}).text.strip("() ")
-        year = cells[1].find("span", {"class": "secondaryInfo"}).next_sibling.strip("() ")
+        year = cells[1].find("span", {"class": "secondaryInfo"}).text.strip("()")
         rating = cells[2].find("strong").text
-        movies.append((name, genre, year, rating))
+        movies.append((name, year, rating))
     
     return movies
 
@@ -30,7 +29,7 @@ def save_to_excel(movies):
     sheet = workbook.add_sheet("Top Movies")
     
     # Write column headers
-    headers = ["Name", "Genre", "Year", "Rating"]
+    headers = ["Name", "Year", "Rating"]
     for col, header in enumerate(headers):
         sheet.write(0, col, header)
     
